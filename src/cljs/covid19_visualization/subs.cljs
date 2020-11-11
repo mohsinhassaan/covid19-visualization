@@ -1,7 +1,8 @@
 (ns covid19-visualization.subs
   (:require
    [re-frame.core :as rf]
-   [covid19-visualization.db :as db]))
+   [covid19-visualization.db :as db]
+   [clojure.set :as set]))
 
 (rf/reg-sub
  ::country-slug
@@ -47,18 +48,34 @@
  (fn [db _]
    (::db/confirmed-cases db)))
 
+(defn smooth
+  [data]
+  (map (fn [{prev :Cases} curr {next :Cases}]
+         (update curr :Cases #(quot (+ prev (:Cases curr) next) 3)))
+       (cons (first data) data)
+       data
+       (concat (rest data) (repeat (last data)))))
+
 (rf/reg-sub
  ::confirmed-cases-data
  :<- [::confirmed-cases]
  (fn [data]
-   {:labels (map :Date data)
-    :datasets [{:label "Confirmed Cases"
-      :backgroundColor "rgba(255,99,132,0.2)"
-      :borderColor "rgba(255,99,132,1)"
-      :borderWidth 1
-      :hoverBackgroundColor "rgba(255,99,132,0.4)"
-      :hoverBorderColor "rgba(255,99,132,1)"
-      :data (map :Cases data)}]}))
+   {:label "Confirmed Cases"
+    :data  (map #(set/rename-keys (select-keys % [:Cases :Date])
+                                  {:Date :x, :Cases :y}) data)}))
+
+(rf/reg-sub
+ ::daily-confirmed-cases-data
+ :<- [::confirmed-cases]
+ (fn [data]
+   (let [daily-data  (map (fn [a b]
+                            {:Date  (:Date b)
+                             :Cases (- (:Cases b) (:Cases a))})
+                          data
+                          (rest data))]
+     {:label "Confirmed Cases"
+      :data  (map #(set/rename-keys (select-keys % [:Cases :Date])
+                                    {:Date :x, :Cases :y}) daily-data)})))
 
 (rf/reg-sub
  ::deaths
@@ -68,15 +85,23 @@
 (rf/reg-sub
  ::deaths-data
  :<- [::deaths]
+   (fn [data]
+     {:label "Deaths"
+      :data (map #(set/rename-keys (select-keys % [:Cases :Date])
+                                   {:Date :x, :Cases :y}) data)}))
+
+(rf/reg-sub
+ ::daily-deaths-data
+ :<- [::deaths]
  (fn [data]
-   {:labels (map :Date data)
-    :datasets [{:label "Deaths"
-                :backgroundColor "rgba(99,132,255,0.2)"
-                :borderColor "rgba(99,132,255,1)"
-                :borderWidth 1
-                :hoverBackgroundColor "rgba(99,132,255,0.4)"
-                :hoverBorderColor "rgba(99,132,255,1)"
-                :data (map :Cases data)}]}))
+   (let [daily-data (map (fn [a b]
+                           {:Date  (:Date b)
+                            :Cases (- (:Cases b) (:Cases a))})
+                         data
+                         (rest data))]
+     {:label "Deaths"
+      :data (map #(set/rename-keys (select-keys % [:Cases :Date])
+                                   {:Date :x, :Cases :y}) daily-data)})))
 
 (rf/reg-sub
  ::active-panel
