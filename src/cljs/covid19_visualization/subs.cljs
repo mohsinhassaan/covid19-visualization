@@ -107,3 +107,35 @@
  ::active-panel
  (fn [db _]
    (::db/active-panel db)))
+
+(rf/reg-sub
+ ::total-cases
+ :<- [::confirmed-cases]
+ (fn [cases]
+   (-> cases last :Cases)))
+
+(rf/reg-sub
+ ::daily-cases
+ :<- [::confirmed-cases]
+ (fn [cases]
+   (->> cases
+        (take-last 2)
+        reverse
+        (map :Cases)
+        (apply -))))
+
+(rf/reg-sub
+ ::total-deaths
+ :<- [::deaths]
+ (fn [deaths]
+   (-> deaths last :Cases)))
+
+(rf/reg-sub
+ ::daily-deaths
+ :<- [::deaths]
+ (fn [deaths]
+   (->> deaths
+        (take-last 2)
+        reverse
+        (map :Cases)
+        (apply -))))

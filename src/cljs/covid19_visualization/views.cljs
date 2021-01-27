@@ -96,6 +96,13 @@
    "Daily New Deaths"
    @(rf/subscribe [::subs/daily-deaths-data])])
 
+(defn number [label num]
+  [:> ui/Card {:style {:margin-bottom "5vh"
+                       :margin-top "5vh"}}
+   [:> ui/CardContent
+    [:> ui/Typography {:variant "h5"} label]
+    [:> ui/Typography {:variant "h3"} num]]])
+
 ;; country
 
 
@@ -110,6 +117,18 @@
                    :direction "row"
                    :xs 12
                    :justify "space-around"}
+       [:> ui/Grid {:item true
+                    :lg 5}
+        [number "Total Cases" @(rf/subscribe [::subs/total-cases])]]
+       [:> ui/Grid {:item true
+                    :lg 5}
+        [number "Daily Cases" @(rf/subscribe [::subs/daily-cases])]]
+       [:> ui/Grid {:item true
+                    :lg 5}
+        [number "Total Deaths" @(rf/subscribe [::subs/total-deaths])]]
+       [:> ui/Grid {:item true
+                    :lg 5}
+        [number "Daily Deaths" @(rf/subscribe [::subs/daily-deaths])]]
        [:> ui/Grid {:item true
                     :lg 5}
         [confirmed-chart]]
