@@ -46,8 +46,9 @@
 
 (rf/reg-event-fx
  ::initialize-country-page
- (fn [_ [_ slug]]
-   {:fx [[:dispatch [::set-country slug]]
+ (fn [{:keys [db]} [_ slug]]
+   {:fx [[:db (dissoc db ::db/confirmed-cases ::db/deaths)]
+         [:dispatch [::set-country slug]]
          [:dispatch [::get-country-confirmed-cases slug]]
          [:dispatch [::get-country-deaths slug]]]}))
 

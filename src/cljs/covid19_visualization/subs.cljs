@@ -112,7 +112,7 @@
  ::total-cases
  :<- [::confirmed-cases]
  (fn [cases]
-   (-> cases last :Cases)))
+   (-> cases last :Cases int)))
 
 (rf/reg-sub
  ::daily-cases
@@ -122,13 +122,14 @@
         (take-last 2)
         reverse
         (map :Cases)
-        (apply -))))
+        (apply -)
+        int)))
 
 (rf/reg-sub
  ::total-deaths
  :<- [::deaths]
  (fn [deaths]
-   (-> deaths last :Cases)))
+   (-> deaths last :Cases int)))
 
 (rf/reg-sub
  ::daily-deaths
@@ -138,4 +139,5 @@
         (take-last 2)
         reverse
         (map :Cases)
-        (apply -))))
+        (apply -)
+        int)))
